@@ -58,7 +58,7 @@ def separate_stems(source_audio_path:Path) -> Dict[str,Path]:
     separated = separator.separate_loaded_audio()
     for file, sources in separated:
         for stem, source in sources.items():
-            stem_path = Path(source_audio_path.stem + "_" + stem + ".mp3")
+            stem_path = Path(source_audio_path.stem + "-" + stem + source_audio_path.suffix)
             stem_paths[stem] = stem_path
             save_audio(source, stem_path, samplerate=separator._samplerate)
     
