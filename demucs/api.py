@@ -28,7 +28,7 @@ import torchaudio as ta
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Optional, Callable, List, Any, Hashable, Tuple
+from typing import Optional, Callable, List, Any, Hashable, Tuple, Dict
 
 from .apply import BagOfModels, tensor_chunk, TensorChunk
 from .audio import AudioFile, convert_audio, save_audio
@@ -37,6 +37,32 @@ from .repo import AnyModel
 from .separate import get_parser
 from .utils import center_trim, DummyPoolExecutor
 
+
+def separate_stems(source_audio_path:Path) -> Dict[str,Path]: 
+    """
+    Separate the vocal stem from the input audio file.
+
+    This function takes an audio file, separates the vocal stem,
+    and saves the separated stems as new audio files with the format '<original_filename>_<stem_name>.mp3' in the same directory.
+
+    :param source_audio_path: The path to the input audio file.
+    :type source_audio_path: Path
+    :return: The path to the separated vocal stem file.
+    :rtype: Path
+    """
+
+    stem_paths = {}
+    separator = Separator()
+    separator.load_model(model='mdx_extra')
+    separator.load_audios_to_model(source_audio_path)
+    separated = separator.separate_loaded_audio()
+    for file, sources in separated:
+        for stem, source in sources.items():
+            stem_path = Path(source_audio_path.stem + "_" + stem + ".mp3")
+            stem_paths[stem] = stem_path
+            save_audio(source, stem_path, samplerate=separator._samplerate)
+    
+    return stem_paths
 
 class LoadAudioError(Exception):
     pass
